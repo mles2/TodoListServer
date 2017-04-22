@@ -8,55 +8,55 @@ import java.net.Socket;
 class Server
 {
     private int port;
-    String lastXml;
+    private String lastXml;
 
     Server(int p_port)
     {
         port = p_port;
     }
 
-    public void run() throws IOException
+    void run() throws IOException
     {
-        String message = "";
-        //creating socket on port
-        ServerSocket socket = new ServerSocket(port);
+        while(true) {
 
-        //server is waiting here for client
-        Socket connectionSocket = socket.accept();
+            String message = "";
+            //creating socket on port
+            ServerSocket socket = new ServerSocket(port);
 
-        BufferedReader bufferFromClient =
-                new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+            //server is waiting here for client
+            Socket connectionSocket = socket.accept();
 
-        DataOutputStream streamForResponse =
-                new DataOutputStream(connectionSocket.getOutputStream());
-        String command = "";
-        command = bufferFromClient.readLine();
-        switch(command)
-        {
-            case "push":
-            {
-                String line = "";
-                while (((line = bufferFromClient.readLine()) != null) && !line.equals("q")) {
-                    System.out.println(line);
-                    message += line + "\n";
+            BufferedReader bufferFromClient =
+                    new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+
+            DataOutputStream streamForResponse =
+                    new DataOutputStream(connectionSocket.getOutputStream());
+            String command;
+            command = bufferFromClient.readLine();
+            switch (command) {
+                case "push": {
+                    String line;
+                    while (((line = bufferFromClient.readLine()) != null) && !line.equals("q")) {
+                        System.out.println(line);
+                        message += line + "\n";
+                    }
+                    System.out.println(message);
+                    lastXml = message;
+                    streamForResponse.writeBytes("I received your message \n");
                 }
-                System.out.println(message);
-                lastXml = message;
-                streamForResponse.writeBytes("I received your message \n");
+                break;
+                case "pull": {
+                    streamForResponse.writeBytes(lastXml);
+                }
+                break;
+                default:
+                    System.out.println("Unrecognized Command!");
+
             }
-            break;
-            case "pull":
-            {
-                streamForResponse.writeBytes("OK, I'm sending XML here \n");
-            }
-            break;
-            default:
-                System.out.println("Unrecognized Command!");
+            connectionSocket.close();
+            socket.close();
+            System.out.println("Server is done!");
 
         }
-
-
-
-        System.out.println("Server is down!");
     }
 }
