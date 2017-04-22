@@ -8,6 +8,7 @@ import java.net.Socket;
 class Server
 {
     private int port;
+    String lastXml;
 
     Server(int p_port)
     {
@@ -28,15 +29,34 @@ class Server
 
         DataOutputStream streamForResponse =
                 new DataOutputStream(connectionSocket.getOutputStream());
+        String command = "";
+        command = bufferFromClient.readLine();
+        switch(command)
+        {
+            case "push":
+            {
+                String line = "";
+                while (((line = bufferFromClient.readLine()) != null) && !line.equals("q")) {
+                    System.out.println(line);
+                    message += line + "\n";
+                }
+                System.out.println(message);
+                lastXml = message;
+                streamForResponse.writeBytes("I received your message \n");
+            }
+            break;
+            case "pull":
+            {
+                streamForResponse.writeBytes("OK, I'm sending XML here \n");
+            }
+            break;
+            default:
+                System.out.println("Unrecognized Command!");
 
-
-        String line = "";
-        while (((line = bufferFromClient.readLine()) != null) && !line.equals("q")) {
-            System.out.println(line);
-            message += line + "\n";
         }
-        System.out.println(message);
-        streamForResponse.writeBytes("I received your message \n");
+
+
+
         System.out.println("Server is down!");
     }
 }
